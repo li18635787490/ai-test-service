@@ -58,6 +58,33 @@ class TestCaseType(str, Enum):
     REGRESSION = "regression"       # 回归测试
     SMOKE = "smoke"                 # 冒烟测试
     INTEGRATION = "integration"     # 集成测试
+    # 新增测试类型
+    SQL_INJECTION = "sql_injection"             # SQL注入测试
+    XSS = "xss"                                 # XSS跨站脚本测试
+    CSRF = "csrf"                              # CSRF跨站请求伪造测试
+    AUTH = "auth"                              # 认证授权测试
+    PERMISSION = "permission"                   # 权限测试
+    SENSITIVE_DATA = "sensitive_data"           # 敏感数据测试
+    MOBILE_COMPAT = "mobile_compat"             # 移动端兼容性测试
+    BROWSER_COMPAT = "browser_compat"           # 浏览器兼容性测试
+    RESOLUTION_COMPAT = "resolution_compat"     # 分辨率兼容性测试
+    API_CONTRACT = "api_contract"               # 接口契约测试
+    API_SECURITY = "api_security"               # 接口安全测试
+    API_PERFORMANCE = "api_performance"         # 接口性能测试
+    UI_INTERACTION = "ui_interaction"           # UI交互测试
+    UI_RESPONSIVE = "ui_responsive"             # UI响应式测试
+    UI_ACCESSIBILITY = "ui_accessibility"       # UI无障碍测试
+    LOAD = "load"                              # 负载测试
+    STRESS = "stress"                          # 压力测试
+    CONCURRENT = "concurrent"                   # 并发测试
+    RELIABILITY = "reliability"                 # 可靠性测试
+    RECOVERY = "recovery"                       # 恢复性测试
+    UPGRADE = "upgrade"                         # 升级测试
+    LOCALIZATION = "localization"               # 本地化测试
+    DATABASE = "database"                       # 数据库测试
+    CACHE = "cache"                            # 缓存测试
+    LOG = "log"                                # 日志测试
+    MONITOR = "monitor"                         # 监控告警测试
 
 
 class TaskStatus(str, Enum):
