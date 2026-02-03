@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 文档检测服务</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="app">
+        <!-- 头部 -->
+        <header class="header">
+            <div class="logo">
+                <span class="logo-icon">📄</span>
+                <h1>AI 文档检测服务</h1>
+            </div>
+            <p class="subtitle">智能文档分析 · 需求检测 · 测试用例生成</p>
+        </header>
+
+        <!-- 主内容区 -->
+        <main class="main">
+            <!-- 功能选项卡 -->
+            <div class="tab-container">
+                <button class="tab-btn active" data-tab="doc-check">📄 文档检测</button>
+                <button class="tab-btn" data-tab="req-analysis">📋 需求分析</button>
+                <button class="tab-btn" data-tab="testcase-gen">🧪 测试用例生成</button>
+            </div>
+
+            <!-- 上传区域 -->
+            <section class="upload-section card">
+                <h2>📤 上传文档</h2>
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-icon">📁</div>
+                    <p>拖拽文件到此处，或点击选择文件</p>
+                    <p class="upload-hint">支持 PDF, Word, Excel, PPT, TXT, Markdown</p>
+                    <input type="file" id="fileInput" accept=".pdf,.docx,.doc,.xlsx,.xls,.pptx,.ppt,.txt,.md" hidden>
+                </div>
+                <div class="file-info" id="fileInfo" style="display: none;">
+                    <span class="file-name" id="fileName"></span>
+                    <span class="file-size" id="fileSize"></span>
+                    <button class="btn-remove" id="removeFile">✕</button>
+                </div>
+            </section>
+
+            <!-- 检测配置 -->
+            <section class="config-section card">
+                <h2>⚙️ 配置</h2>
+
+                <div class="config-group">
+                    <label>AI 提供商</label>
+                    <div class="radio-group">
+                        <label class="radio-item">
+                            <input type="radio" name="aiProvider" value="openai">
+                            <span>OpenAI GPT</span>
+                        </label>
+                        <label class="radio-item">
+                            <input type="radio" name="aiProvider" value="anthropic">
+                            <span>Claude</span>
+                        </label>
+                        <label class="radio-item">
+                            <input type="radio" name="aiProvider" value="qwen" checked>
+                            <span>通义千问</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- 文档检测专用配置 -->
+                <div class="config-group doc-check-config" id="docCheckConfig">
+                    <label>检测模式</label>
+                    <div class="radio-group">
+                        <label class="radio-item">
+                            <input type="radio" name="checkMode" value="smart" checked>
+                            <span>🎯 智能检测（推荐）</span>
+                        </label>
+                        <label class="radio-item">
+                            <input type="radio" name="checkMode" value="custom">
+                            <span>⚙️ 自定义维度</span>
+                        </label>
+                    </div>
+
+                    <!-- 自定义维度选项（默认隐藏） -->
+                    <div class="checkbox-group custom-dimensions" id="customDimensions" style="display: none; margin-top: 12px;">
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="dimensions" value="format" checked>
+                            <span>📐 格式规范</span>
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="dimensions" value="content" checked>
+                            <span>📝 内容质量</span>
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="dimensions" value="logic" checked>
+                            <span>🔗 逻辑一致性</span>
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="dimensions" value="sensitive">
+                            <span>🔒 敏感信息</span>
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="dimensions" value="compliance">
+                            <span>✅ 合规检查</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- 文档检测的自定义规则 -->
+                <div class="config-group doc-check-config">
+                    <label>自定义检测规则（可选）</label>
+                    <textarea id="customRules" placeholder="例如：检查是否包含公司名称、检查日期格式是否统一..."></textarea>
+                </div>
+
+                <!-- 需求分析专用配置（默认隐藏） -->
+                <div class="config-group req-analysis-config" id="reqAnalysisConfig" style="display: none;">
+                    <label>分析重点</label>
+                    <p class="config-hint">AI 将从业务视角分析需求的完整性、场景覆盖、规则清晰度等方面</p>
+                </div>
+
+                <!-- 测试用例生成专用配置（默认隐藏） -->
+                <div class="config-group testcase-gen-config" id="testcaseGenConfig" style="display: none;">
+                    <label>生成策略</label>
+                    <p class="config-hint">AI 将根据需求自动生成正向、反向、边界、异常等类型的测试用例</p>
+                </div>
+
+                <button class="btn-primary" id="startCheck" disabled>
+                    <span class="btn-icon">🚀</span>
+                    开始检测
+                </button>
+            </section>
+
+            <!-- 检测进度 -->
+            <section class="progress-section card" id="progressSection" style="display: none;">
+                <h2>⏳ 检测进度</h2>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <p class="progress-text" id="progressText">准备中...</p>
+                <div class="progress-status" id="progressStatus"></div>
+            </section>
+
+            <!-- 检测结果 -->
+            <section class="result-section card" id="resultSection" style="display: none;">
+                <h2>📊 检测结果</h2>
+
+                <!-- 总览 -->
+                <div class="result-overview">
+                    <div class="score-display">
+                        <div class="score-circle" id="scoreCircle">
+                            <span class="score-value" id="scoreValue">--</span>
+                            <span class="score-label">综合得分</span>
+                        </div>
+                    </div>
+                    <div class="issue-summary">
+                        <div class="issue-item error">
+                            <span class="issue-count" id="errorCount">0</span>
+                            <span class="issue-label">错误</span>
+                        </div>
+                        <div class="issue-item warning">
+                            <span class="issue-count" id="warningCount">0</span>
+                            <span class="issue-label">警告</span>
+                        </div>
+                        <div class="issue-item info">
+                            <span class="issue-count" id="infoCount">0</span>
+                            <span class="issue-label">提示</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 总结 -->
+                <div class="result-summary" id="resultSummary"></div>
+
+                <!-- 详细结果 -->
+                <div class="result-details" id="resultDetails"></div>
+
+                <!-- 操作按钮 -->
+                <div class="result-actions">
+                    <button class="btn-secondary" id="viewHtmlReport">
+                        <span>📄</span> 查看 HTML 报告
+                    </button>
+                    <button class="btn-secondary" id="downloadHtml">
+                        <span>⬇️</span> 下载 HTML
+                    </button>
+                    <button class="btn-secondary" id="downloadMd">
+                        <span>⬇️</span> 下载 Markdown
+                    </button>
+                    <button class="btn-outline" id="newCheck">
+                        <span>🔄</span> 新建检测
+                    </button>
+                </div>
+            </section>
+
+            <!-- 需求分析结果 -->
+            <section class="result-section card" id="reqAnalysisResult" style="display: none;">
+                <h2>📋 需求分析结果</h2>
+
+                <!-- 评分总览 -->
+                <div class="req-scores">
+                    <div class="score-item">
+                        <div class="score-ring" id="completenessScore">--</div>
+                        <span>完整性</span>
+                    </div>
+                    <div class="score-item">
+                        <div class="score-ring" id="scenarioScore">--</div>
+                        <span>场景覆盖</span>
+                    </div>
+                    <div class="score-item">
+                        <div class="score-ring" id="descriptionScore">--</div>
+                        <span>描述质量</span>
+                    </div>
+                    <div class="score-item">
+                        <div class="score-ring" id="testabilityScore">--</div>
+                        <span>可测试性</span>
+                    </div>
+                </div>
+
+                <!-- 分析总结 -->
+                <div class="result-summary" id="reqSummary"></div>
+
+                <!-- 需求列表 -->
+                <div class="req-list" id="reqList"></div>
+
+                <!-- 改进建议 -->
+                <div class="improvement-suggestions" id="improvementSuggestions"></div>
+
+                <!-- 操作按钮 -->
+                <div class="result-actions">
+                    <button class="btn-secondary" id="exportAnalysisMarkdown">
+                        <span>📝</span> 导出 Markdown
+                    </button>
+                    <button class="btn-primary" id="generateTestCasesFromAnalysis">
+                        <span>🧪</span> 生成测试用例
+                    </button>
+                    <button class="btn-outline" id="newAnalysis">
+                        <span>🔄</span> 新建分析
+                    </button>
+                </div>
+            </section>
+
+            <!-- 测试用例结果 -->
+            <section class="result-section card" id="testCaseResult" style="display: none;">
+                <h2>🧪 测试用例</h2>
+
+                <!-- 统计信息 -->
+                <div class="testcase-stats">
+                    <div class="stat-box">
+                        <span class="stat-number" id="totalCases">0</span>
+                        <span class="stat-label">总用例数</span>
+                    </div>
+                    <div class="stat-box p0">
+                        <span class="stat-number" id="p0Count">0</span>
+                        <span class="stat-label">P0 用例</span>
+                    </div>
+                    <div class="stat-box p1">
+                        <span class="stat-number" id="p1Count">0</span>
+                        <span class="stat-label">P1 用例</span>
+                    </div>
+                    <div class="stat-box p2">
+                        <span class="stat-number" id="p2Count">0</span>
+                        <span class="stat-label">P2 用例</span>
+                    </div>
+                </div>
+
+                <!-- 覆盖情况 -->
+                <div class="result-summary" id="coverageSummary"></div>
+
+                <!-- 测试用例列表 -->
+                <div class="testcase-list" id="testCaseList"></div>
+
+                <!-- 操作按钮 -->
+                <div class="result-actions">
+                    <button class="btn-secondary" id="exportMarkdown">
+                        <span>📝</span> 导出 Markdown
+                    </button>
+                    <button class="btn-secondary" id="exportCsv">
+                        <span>📊</span> 导出 CSV
+                    </button>
+                    <button class="btn-outline" id="newTestCase">
+                        <span>🔄</span> 重新生成
+                    </button>
+                </div>
+            </section>
+        </main>
+
+        <!-- 页脚 -->
+        <footer class="footer">
+            <p>AI 文档检测服务 v1.1.0 |
+                <a href="/docs" target="_blank">API 文档</a>
+            </p>
+        </footer>
+    </div>
+
+    <!-- Toast 提示 -->
+    <div class="toast" id="toast"></div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>

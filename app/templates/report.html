@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文档检测报告 - {{ report.document.filename }}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .header .subtitle {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+
+        .score-section {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 30px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .score-circle {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .score-circle.excellent { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); color: white; }
+        .score-circle.good { background: linear-gradient(135deg, #56ab2f 0%, #a8e063 100%); color: white; }
+        .score-circle.warning { background: linear-gradient(135deg, #f7971e 0%, #ffd200 100%); color: white; }
+        .score-circle.danger { background: linear-gradient(135deg, #cb2d3e 0%, #ef473a 100%); color: white; }
+
+        .score-circle .score-value {
+            font-size: 36px;
+        }
+
+        .score-circle .score-label {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+
+        .issue-stats {
+            display: flex;
+            gap: 20px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 15px 25px;
+            border-radius: 8px;
+            background: #f8f9fa;
+        }
+
+        .stat-item .count {
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .stat-item .label {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .stat-item.error .count { color: #dc3545; }
+        .stat-item.warning .count { color: #ffc107; }
+        .stat-item.info .count { color: #17a2b8; }
+
+        .summary {
+            padding: 25px 30px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #eee;
+        }
+
+        .summary h2 {
+            font-size: 16px;
+            margin-bottom: 10px;
+            color: #555;
+        }
+
+        .summary p {
+            color: #333;
+        }
+
+        .results {
+            padding: 30px;
+        }
+
+        .result-item {
+            margin-bottom: 30px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .result-header h3 {
+            font-size: 16px;
+            text-transform: uppercase;
+        }
+
+        .result-score {
+            font-weight: bold;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+        }
+
+        .result-score.excellent { background: #d4edda; color: #155724; }
+        .result-score.good { background: #d1ecf1; color: #0c5460; }
+        .result-score.warning { background: #fff3cd; color: #856404; }
+        .result-score.danger { background: #f8d7da; color: #721c24; }
+
+        .result-body {
+            padding: 20px;
+        }
+
+        .result-summary {
+            color: #666;
+            margin-bottom: 15px;
+        }
+
+        .issues-list {
+            list-style: none;
+        }
+
+        .issue {
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 6px;
+            border-left: 4px solid;
+        }
+
+        .issue.error { background: #fff5f5; border-color: #dc3545; }
+        .issue.warning { background: #fffbf0; border-color: #ffc107; }
+        .issue.info { background: #f0f9ff; border-color: #17a2b8; }
+
+        .issue-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: bold;
+            margin-right: 10px;
+            text-transform: uppercase;
+        }
+
+        .issue.error .issue-badge { background: #dc3545; color: white; }
+        .issue.warning .issue-badge { background: #ffc107; color: #333; }
+        .issue.info .issue-badge { background: #17a2b8; color: white; }
+
+        .issue-description {
+            margin: 10px 0;
+        }
+
+        .issue-meta {
+            font-size: 13px;
+            color: #666;
+        }
+
+        .issue-meta span {
+            margin-right: 20px;
+        }
+
+        .footer {
+            padding: 20px 30px;
+            background: #f8f9fa;
+            text-align: center;
+            font-size: 13px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📄 文档检测报告</h1>
+            <div class="subtitle">
+                {{ report.document.filename }} |
+                {{ report.document.file_type.value|upper }} |
+                生成时间: {{ report.generated_at.strftime('%Y-%m-%d %H:%M:%S') }}
+            </div>
+        </div>
+
+        <div class="score-section">
+            {% set score = report.overall_score %}
+            {% if score >= 90 %}
+                {% set score_class = 'excellent' %}
+            {% elif score >= 75 %}
+                {% set score_class = 'good' %}
+            {% elif score >= 60 %}
+                {% set score_class = 'warning' %}
+            {% else %}
+                {% set score_class = 'danger' %}
+            {% endif %}
+
+            <div class="score-circle {{ score_class }}">
+                <span class="score-value">{{ "%.0f"|format(score) }}</span>
+                <span class="score-label">综合得分</span>
+            </div>
+
+            <div class="issue-stats">
+                <div class="stat-item error">
+                    <div class="count">{{ report.error_count }}</div>
+                    <div class="label">错误</div>
+                </div>
+                <div class="stat-item warning">
+                    <div class="count">{{ report.warning_count }}</div>
+                    <div class="label">警告</div>
+                </div>
+                <div class="stat-item info">
+                    <div class="count">{{ report.info_count }}</div>
+                    <div class="label">提示</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="summary">
+            <h2>📋 整体评估</h2>
+            <p>{{ report.summary }}</p>
+        </div>
+
+        <div class="results">
+            {% for result in report.results %}
+            <div class="result-item">
+                <div class="result-header">
+                    <h3>{{ result.dimension.value }} 检测</h3>
+                    {% if result.score >= 90 %}
+                        {% set result_class = 'excellent' %}
+                    {% elif result.score >= 75 %}
+                        {% set result_class = 'good' %}
+                    {% elif result.score >= 60 %}
+                        {% set result_class = 'warning' %}
+                    {% else %}
+                        {% set result_class = 'danger' %}
+                    {% endif %}
+                    <span class="result-score {{ result_class }}">{{ "%.0f"|format(result.score) }} 分</span>
+                </div>
+                <div class="result-body">
+                    <p class="result-summary">{{ result.summary }}</p>
+
+                    {% if result.issues %}
+                    <ul class="issues-list">
+                        {% for issue in result.issues %}
+                        <li class="issue {{ issue.severity.value }}">
+                            <span class="issue-badge">{{ issue.severity.value }}</span>
+                            <div class="issue-description">{{ issue.description }}</div>
+                            <div class="issue-meta">
+                                {% if issue.location %}
+                                <span>📍 {{ issue.location }}</span>
+                                {% endif %}
+                                {% if issue.suggestion %}
+                                <span>💡 {{ issue.suggestion }}</span>
+                                {% endif %}
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <p style="color: #28a745;">✅ 未发现问题</p>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="footer">
+            AI 文档检测系统 | 报告 ID: {{ report.task_id }}
+        </div>
+    </div>
+</body>
+</html>
