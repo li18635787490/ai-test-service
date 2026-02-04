@@ -31,6 +31,20 @@ class Settings(BaseSettings):
     upload_dir: str = "./uploads"
     report_dir: str = "./reports"
 
+    # Database (PostgreSQL)
+    db_host: str = "localhost"
+    db_port: int = 5432
+    db_name: str = "ai_test_service"
+    db_user: str = "postgres"
+    db_password: str = "postgres"
+    db_pool_size: int = 5
+    db_max_overflow: int = 10
+
+    @property
+    def database_url(self) -> str:
+        """生成数据库连接URL"""
+        return f"postgresql://{self.db_user}:{self.db_password}@{self.db_host}:{self.db_port}/{self.db_name}"
+
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"

@@ -1,15 +1,16 @@
 """
 API 路由 - 需求分析与测试用例生成
 """
-from typing import Optional
+from typing import Optional, List
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import PlainTextResponse
 from pydantic import BaseModel, Field
 
 from app.models import RequirementAnalysisResult, TestCaseGenerationResult
 from app.services.requirement_analyzer import RequirementAnalyzer
 from app.services.document_parser import DocumentParser
+from app.services.storage_factory import get_storage
 from app.routers.documents import get_document_path, get_document_info
 
 router = APIRouter(prefix="/requirements", tags=["需求分析"])
@@ -43,11 +44,22 @@ async def analyze_requirements(request: AnalyzeRequest):
     try:
         # 获取文档内容
         doc_path = get_document_path(request.document_id)
+        doc_info = get_document_info(request.document_id)
         content, _ = await DocumentParser.parse(doc_path)
 
         # 分析需求
         analyzer = RequirementAnalyzer(request.ai_provider)
         result = await analyzer.analyze_requirements(content)
+
+        # 保存分析结果到数据库
+        storage = get_storage()
+        result_dict = result.model_dump() if hasattr(result, 'model_dump') else result.dict()
+        storage.save_requirement_analysis(
+            document_id=request.document_id,
+            document_name=doc_info.filename,
+            result=result_dict,
+            ai_provider=request.ai_provider
+        )
 
         return result
 
@@ -62,22 +74,38 @@ async def generate_test_cases(request: GenerateTestCasesRequest):
     """
     根据需求文档生成测试用例
 
-    自动生成功能测试用例，包括：
-    - 正向测试用例
-    - 反向测试用例
+    自动生成全面的测试用例，包括：
+    - 功能测试用例（正向/反向）
     - 边界测试用例
     - 异常测试用例
+    - 安全测试用例（SQL注入/XSS/CSRF/认证授权）
+    - 兼容性测试用例（浏览器/移动端/分辨率）
+    - 接口测试用例（契约/安全/性能）
+    - UI测试用例（交互/响应式）
+    - 性能测试用例（负载/并发）
+    - 数据测试用例（一致性/完整性）
 
-    每个用例包含详细的测试步骤和预期结果。
+    每个功能点生成15-20个测试用例，确保全面覆盖。
     """
     try:
         # 获取文档内容
         doc_path = get_document_path(request.document_id)
+        doc_info = get_document_info(request.document_id)
         content, _ = await DocumentParser.parse(doc_path)
 
         # 生成测试用例
         analyzer = RequirementAnalyzer(request.ai_provider)
         result = await analyzer.generate_test_cases(content, request.document_id)
+
+        # 保存测试用例结果到数据库
+        storage = get_storage()
+        result_dict = result.model_dump() if hasattr(result, 'model_dump') else result.dict()
+        storage.save_testcase_generation(
+            document_id=request.document_id,
+            document_name=doc_info.filename,
+            result=result_dict,
+            ai_provider=request.ai_provider
+        )
 
         return result
 
@@ -330,4 +358,103 @@ def _export_analysis_markdown(result: RequirementAnalysisResult, filename: str) 
     lines.append(f"*报告由 AI 文档检测服务自动生成*")
 
     return "\n".join(lines)
+
+
+# ============ 历史记录查询 API ============
+
+@router.get("/history/analysis")
+async def get_analysis_history(
+    document_id: Optional[str] = Query(None, description="文档ID，不传则查询所有"),
+    limit: int = Query(50, description="返回数量限制")
+):
+    """
+    获取需求分析历史记录
+
+    - **document_id**: 可选，指定文档ID查询该文档的分析历史
+    - **limit**: 返回数量限制，默认50条
+    """
+    try:
+        storage = get_storage()
+        history = storage.get_analysis_history(document_id, limit)
+        return {
+            "total": len(history),
+            "records": history
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"查询失败: {str(e)}")
+
+
+@router.get("/history/analysis/{analysis_id}")
+async def get_analysis_detail(analysis_id: int):
+    """
+    获取需求分析详情
+
+    - **analysis_id**: 分析记录ID
+    """
+    try:
+        storage = get_storage()
+        detail = storage.get_analysis_detail(analysis_id)
+        if not detail:
+            raise HTTPException(status_code=404, detail="记录不存在")
+        return detail
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"查询失败: {str(e)}")
+
+
+@router.get("/history/testcases")
+async def get_testcase_history(
+    document_id: Optional[str] = Query(None, description="文档ID，不传则查询所有"),
+    limit: int = Query(50, description="返回数量限制")
+):
+    """
+    获取测试用例生成历史
+
+    - **document_id**: 可选，指定文档ID查询该文档的生成历史
+    - **limit**: 返回数量限制，默认50条
+    """
+    try:
+        storage = get_storage()
+        history = storage.get_testcase_history(document_id, limit)
+        return {
+            "total": len(history),
+            "records": history
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"查询失败: {str(e)}")
+
+
+@router.get("/history/testcases/{generation_id}")
+async def get_testcase_detail(generation_id: int):
+    """
+    获取测试用例生成详情
+
+    - **generation_id**: 生成记录ID
+    """
+    try:
+        storage = get_storage()
+        detail = storage.get_testcase_detail(generation_id)
+        if not detail:
+            raise HTTPException(status_code=404, detail="记录不存在")
+        return detail
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"查询失败: {str(e)}")
+
+
+@router.get("/statistics")
+async def get_statistics():
+    """
+    获取统计信息
+
+    返回分析次数、测试用例数量、平均分数等统计数据
+    """
+    try:
+        storage = get_storage()
+        return storage.get_statistics()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"查询失败: {str(e)}")
+
 

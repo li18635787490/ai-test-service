@@ -191,7 +191,7 @@ class RequirementAnalyzer:
         prompt = """你是一个拥有15年经验的资深测试架构师。请根据需求文档为每个功能点生成**全面、详细、具体、可执行**的测试用例。
 
 ## 🎯 核心目标
-为每个功能点生成**至少15-20个测试用例**，确保全方位覆盖各种测试场景。
+为每个功能点生成**至少20-30个测试用例**，确保全方位覆盖各种测试场景。用例要具体、可执行、有真实数据。
 
 ## 测试用例设计原则
 
@@ -203,258 +203,120 @@ class RequirementAnalyzer:
 
 ## 📋 必须覆盖的测试类型（每个功能都要有）
 
-## 📋 必须覆盖的测试类型（每个功能都要有）
-
-### 1️⃣ 功能测试（P0/P1）- 至少3个用例
-- 正常流程完整走通
+### 1️⃣ 功能测试（P0/P1）- 至少5个用例
+- 正常流程完整走通（主流程）
 - 使用有效数据验证核心功能
 - 多种有效输入组合测试
+- 不同用户角色测试（普通用户/VIP/管理员）
+- 不同业务场景测试（首次使用/重复使用）
 
-### 2️⃣ 反向/异常测试（P1/P2）- 至少4个用例
+### 2️⃣ 反向/异常测试（P1/P2）- 至少6个用例
 - 必填项为空时的提示
-- 数据格式错误时的处理
+- 数据格式错误时的处理（邮箱格式、手机号格式等）
 - 权限不足时的提示
-- 业务规则不满足时的处理
-- 网络异常/超时处理
-- 并发操作冲突处理
+- 业务规则不满足时的处理（余额不足、库存不足等）
+- 网络异常/超时处理（断网、弱网、请求超时）
+- 并发操作冲突处理（同时提交、重复点击）
+- 服务端异常处理（500错误、接口超时）
 
-### 3️⃣ 边界测试（P1/P2）- 至少3个用例
-- 最小值、最大值测试
-- 长度边界（刚好、超出一位）
-- 数量边界（0个、1个、最大个数）
-- 特殊字符处理
+### 3️⃣ 边界测试（P1/P2）- 至少5个用例
+- 最小值测试（0、1、最小长度）
+- 最大值测试（最大长度、最大数量）
+- 边界值-1和+1测试
+- 空值、null值测试
+- 特殊字符处理（中文、emoji、特殊符号）
+- 超长文本测试
 
-### 4️⃣ 安全测试（P1/P2）- 至少4个用例
-- **SQL注入测试**：输入 ' OR '1'='1、1; DROP TABLE users-- 等
-- **XSS跨站脚本测试**：输入 <script>alert('xss')</script>、<img onerror="alert(1)">
-- **CSRF跨站请求伪造测试**：验证Token机制
-- **认证授权测试**：未登录访问、Token过期、Token篡改
-- **权限越权测试**：普通用户访问管理员功能、水平越权访问他人数据
-- **敏感数据测试**：密码是否明文传输、敏感信息是否脱敏显示
+### 4️⃣ 安全测试（P1/P2）- 至少6个用例
+- **SQL注入测试**：' OR '1'='1、1; DROP TABLE users--、UNION SELECT
+- **XSS跨站脚本测试**：<script>alert('xss')</script>、<img onerror="alert(1)">、javascript:alert(1)
+- **CSRF跨站请求伪造测试**：验证Token机制、Referer校验
+- **认证授权测试**：未登录访问、Token过期、Token篡改、伪造Token
+- **权限越权测试**：垂直越权（普通用户访问管理员功能）、水平越权（访问他人数据）
+- **敏感数据测试**：密码是否明文传输、敏感信息是否脱敏显示、日志是否泄露敏感信息
+- **暴力破解测试**：密码错误次数限制、验证码机制
 
-### 5️⃣ 兼容性测试（P2/P3）- 至少3个用例
-- **浏览器兼容性**：Chrome、Firefox、Safari、Edge
-- **移动端兼容性**：iOS Safari、Android Chrome、微信内置浏览器
-- **分辨率兼容性**：1920x1080、1366x768、375x667(iPhone)、414x896
+### 5️⃣ 兼容性测试（P2/P3）- 至少4个用例
+- **浏览器兼容性**：Chrome、Firefox、Safari、Edge、IE11
+- **移动端兼容性**：iOS Safari、Android Chrome、微信内置浏览器、支付宝内置浏览器
+- **分辨率兼容性**：1920x1080、1366x768、1280x720、375x667(iPhone)、414x896(iPhone Plus)
+- **系统兼容性**：Windows、MacOS、iOS、Android
 
-### 6️⃣ 接口测试（P1/P2）- 至少3个用例
-- **接口契约测试**：请求参数校验、响应格式校验
-- **接口安全测试**：无Token调用、错误Token调用
-- **接口性能测试**：响应时间是否在可接受范围内
+### 6️⃣ 接口测试（P1/P2）- 至少5个用例
+- **接口契约测试**：请求参数校验、响应格式校验、必填参数缺失
+- **接口安全测试**：无Token调用、错误Token调用、过期Token调用
+- **接口性能测试**：响应时间是否在可接受范围内（<200ms）
 - **接口幂等性测试**：重复调用是否产生副作用
+- **接口异常测试**：参数类型错误、参数值越界、接口不存在
 
-### 7️⃣ UI测试（P2/P3）- 至少3个用例
-- **UI交互测试**：按钮可点击、输入框可输入、下拉框可选择
+### 7️⃣ UI测试（P2/P3）- 至少4个用例
+- **UI交互测试**：按钮可点击、输入框可输入、下拉框可选择、复选框/单选框
 - **UI响应式测试**：不同屏幕尺寸下的显示效果
-- **UI无障碍测试**：键盘导航、屏幕阅读器兼容
+- **UI状态测试**：Loading状态、空数据状态、错误状态、禁用状态
+- **UI无障碍测试**：键盘导航、Tab顺序、屏幕阅读器兼容
 
-### 8️⃣ 性能测试（P2/P3）- 至少2个用例
+### 8️⃣ 性能测试（P2/P3）- 至少4个用例
 - **负载测试**：正常负载下的响应时间
-- **并发测试**：多用户同时操作的表现
-- **大数据量测试**：列表数据量大时的加载表现
+- **并发测试**：100/500/1000用户同时操作
+- **压力测试**：超出系统承载能力时的表现
+- **大数据量测试**：列表10000+条数据时的加载表现
+- **内存泄漏测试**：长时间运行后的内存占用
 
-### 9️⃣ 数据测试（P1/P2）- 至少2个用例
+### 9️⃣ 数据测试（P1/P2）- 至少4个用例
 - **数据一致性测试**：前端显示与数据库数据一致
 - **数据完整性测试**：必要字段是否正确保存
 - **数据回滚测试**：操作失败时数据是否正确回滚
+- **数据隔离测试**：不同用户/租户的数据是否隔离
+- **数据备份恢复测试**：数据备份和恢复是否正常
+
+### 🔟 业务流程测试（P0/P1）- 至少3个用例
+- **完整业务流程**：从开始到结束的完整流程
+- **中断恢复测试**：流程中断后能否继续
+- **逆向流程测试**：取消、退款、撤销等逆向操作
+
+## 测试数据示例库（请使用类似真实数据）
+
+- 手机号：13812345678、13987654321、18600001111
+- 邮箱：zhangsan@example.com、test.user@company.cn
+- 姓名：张三、李四、王小明、赵丽颖
+- 身份证：110101199003071234
+- 银行卡：6222021234567890123
+- 金额：0.01、99.99、1000.00、99999.99
+- 地址：北京市朝阳区建国路88号SOHO现代城A座1001室
+- 用户名：test_user_001、admin、zhangsan123
+- 密码：Test@123456、Abc#12345、Pass!word99
 
 ## 输出格式（JSON）：
 
 {
     "test_cases": [
         {
-            "case_id": "TC-LOGIN-001",
+            "case_id": "TC-模块名-001",
             "requirement_id": "REQ-001",
-            "title": "【功能-正向】使用正确的手机号密码登录成功",
-            "priority": "P0",
-            "case_type": "functional",
-            "precondition": "1. 用户已注册账号，手机号：13812345678，密码：Test@123456\\n2. 账号状态正常，未被锁定\\n3. 网络连接正常",
+            "title": "【测试类型-子类型】具体的测试标题描述",
+            "priority": "P0/P1/P2/P3",
+            "case_type": "测试类型",
+            "precondition": "详细的前置条件，包含具体数据",
             "steps": [
-                {"step_number": 1, "action": "打开登录页面 https://xxx.com/login", "expected_result": "显示登录页面，包含手机号、密码输入框和登录按钮"},
-                {"step_number": 2, "action": "在手机号输入框输入：13812345678", "expected_result": "手机号正确显示，无报错提示"},
-                {"step_number": 3, "action": "在密码输入框输入：Test@123456", "expected_result": "密码以●●●形式显示"},
-                {"step_number": 4, "action": "点击【登录】按钮", "expected_result": "1. 按钮显示loading状态\\n2. 1-2秒内登录成功\\n3. 跳转到首页\\n4. 右上角显示用户头像和昵称"}
+                {"step_number": 1, "action": "具体操作描述，包含具体数据", "expected_result": "具体的预期结果"}
             ],
-            "test_data": "手机号：13812345678，密码：Test@123456",
-            "tags": ["登录", "P0", "冒烟测试", "功能测试"]
-        },
-        {
-            "case_id": "TC-LOGIN-002",
-            "requirement_id": "REQ-001", 
-            "title": "【异常-反向】密码错误时显示错误提示并记录失败次数",
-            "priority": "P1",
-            "case_type": "exception",
-            "precondition": "用户已注册，手机号：13812345678，正确密码为 Test@123456",
-            "steps": [
-                {"step_number": 1, "action": "打开登录页面", "expected_result": "显示登录页面"},
-                {"step_number": 2, "action": "输入手机号：13812345678", "expected_result": "手机号正确显示"},
-                {"step_number": 3, "action": "输入错误密码：WrongPass123", "expected_result": "密码以密文形式显示"},
-                {"step_number": 4, "action": "点击【登录】按钮", "expected_result": "1. 提示'手机号或密码错误，还可尝试4次'\\n2. 停留在登录页面\\n3. 密码框自动清空\\n4. 手机号保留"}
-            ],
-            "test_data": "手机号：13812345678，错误密码：WrongPass123",
-            "tags": ["登录", "异常测试", "P1"]
-        },
-        {
-            "case_id": "TC-LOGIN-003",
-            "requirement_id": "REQ-001",
-            "title": "【边界】密码长度为最小值8位时正常登录",
-            "priority": "P2",
-            "case_type": "boundary",
-            "precondition": "用户已注册，密码设置为8位：Aa@12345",
-            "steps": [
-                {"step_number": 1, "action": "打开登录页面", "expected_result": "显示登录页面"},
-                {"step_number": 2, "action": "输入手机号和8位密码：Aa@12345", "expected_result": "输入成功"},
-                {"step_number": 3, "action": "点击登录", "expected_result": "登录成功，跳转首页"}
-            ],
-            "test_data": "手机号：13812345678，8位密码：Aa@12345",
-            "tags": ["登录", "边界测试", "P2"]
-        },
-        {
-            "case_id": "TC-LOGIN-004",
-            "requirement_id": "REQ-001",
-            "title": "【安全-SQL注入】登录接口防SQL注入攻击",
-            "priority": "P1",
-            "case_type": "sql_injection",
-            "precondition": "登录页面可正常访问",
-            "steps": [
-                {"step_number": 1, "action": "打开登录页面", "expected_result": "显示登录页面"},
-                {"step_number": 2, "action": "在手机号输入框输入：' OR '1'='1' --", "expected_result": "输入被接受"},
-                {"step_number": 3, "action": "在密码框输入任意内容：123456", "expected_result": "正常显示"},
-                {"step_number": 4, "action": "点击登录", "expected_result": "1. 不会登录成功\\n2. 提示'手机号格式不正确'或'用户名密码错误'\\n3. 不会显示数据库错误信息"}
-            ],
-            "test_data": "SQL注入payload：' OR '1'='1' --",
-            "tags": ["登录", "安全测试", "SQL注入", "P1"]
-        },
-        {
-            "case_id": "TC-LOGIN-005",
-            "requirement_id": "REQ-001",
-            "title": "【安全-XSS】登录页面防XSS跨站脚本攻击",
-            "priority": "P1",
-            "case_type": "xss",
-            "precondition": "登录页面可正常访问",
-            "steps": [
-                {"step_number": 1, "action": "打开登录页面", "expected_result": "显示登录页面"},
-                {"step_number": 2, "action": "在手机号输入框输入：<script>alert('XSS')</script>", "expected_result": "输入被接受或被过滤"},
-                {"step_number": 3, "action": "点击登录", "expected_result": "1. 不会弹出alert对话框\\n2. 页面正常显示\\n3. 脚本标签被转义或过滤"}
-            ],
-            "test_data": "XSS payload：<script>alert('XSS')</script>",
-            "tags": ["登录", "安全测试", "XSS", "P1"]
-        },
-        {
-            "case_id": "TC-LOGIN-006",
-            "requirement_id": "REQ-001",
-            "title": "【安全-认证】未登录状态访问需登录页面被拦截",
-            "priority": "P0",
-            "case_type": "auth",
-            "precondition": "用户未登录，清除所有Cookie和本地存储",
-            "steps": [
-                {"step_number": 1, "action": "直接访问个人中心页面 https://xxx.com/user/profile", "expected_result": "1. 自动跳转到登录页面\\n2. URL带有redirect参数指向原页面"},
-                {"step_number": 2, "action": "登录成功后", "expected_result": "自动跳转回个人中心页面"}
-            ],
-            "test_data": "无",
-            "tags": ["登录", "安全测试", "认证授权", "P0"]
-        },
-        {
-            "case_id": "TC-LOGIN-007",
-            "requirement_id": "REQ-001",
-            "title": "【兼容-浏览器】Chrome浏览器登录功能正常",
-            "priority": "P2",
-            "case_type": "browser_compat",
-            "precondition": "使用Chrome浏览器（版本100+）",
-            "steps": [
-                {"step_number": 1, "action": "使用Chrome浏览器打开登录页面", "expected_result": "页面正常显示，无样式错乱"},
-                {"step_number": 2, "action": "输入正确的手机号密码登录", "expected_result": "登录成功，功能正常"}
-            ],
-            "test_data": "Chrome 120版本",
-            "tags": ["登录", "兼容性测试", "浏览器", "P2"]
-        },
-        {
-            "case_id": "TC-LOGIN-008",
-            "requirement_id": "REQ-001",
-            "title": "【兼容-移动端】iPhone微信内置浏览器登录正常",
-            "priority": "P2",
-            "case_type": "mobile_compat",
-            "precondition": "使用iPhone微信内置浏览器",
-            "steps": [
-                {"step_number": 1, "action": "在微信中打开登录页面链接", "expected_result": "页面正常显示，适配移动端"},
-                {"step_number": 2, "action": "输入手机号密码登录", "expected_result": "软键盘正常弹出，登录成功"}
-            ],
-            "test_data": "iPhone 14, iOS 17, 微信8.0",
-            "tags": ["登录", "兼容性测试", "移动端", "P2"]
-        },
-        {
-            "case_id": "TC-LOGIN-009",
-            "requirement_id": "REQ-001",
-            "title": "【接口-契约】登录接口参数校验",
-            "priority": "P1",
-            "case_type": "api_contract",
-            "precondition": "接口测试工具准备就绪（Postman/JMeter）",
-            "steps": [
-                {"step_number": 1, "action": "调用登录接口，不传手机号参数", "expected_result": "返回400，错误信息：'手机号不能为空'"},
-                {"step_number": 2, "action": "调用登录接口，手机号传空字符串", "expected_result": "返回400，错误信息：'手机号格式不正确'"},
-                {"step_number": 3, "action": "调用登录接口，手机号传非法格式12345", "expected_result": "返回400，错误信息：'手机号格式不正确'"}
-            ],
-            "test_data": "POST /api/login，缺少phone参数",
-            "tags": ["登录", "接口测试", "参数校验", "P1"]
-        },
-        {
-            "case_id": "TC-LOGIN-010",
-            "requirement_id": "REQ-001",
-            "title": "【UI-交互】登录按钮点击状态变化",
-            "priority": "P2",
-            "case_type": "ui_interaction",
-            "precondition": "登录页面已打开",
-            "steps": [
-                {"step_number": 1, "action": "鼠标悬停在登录按钮上", "expected_result": "按钮颜色变深，显示手型光标"},
-                {"step_number": 2, "action": "点击登录按钮（未输入信息）", "expected_result": "按钮无反应或提示必填项"},
-                {"step_number": 3, "action": "输入完整信息后点击登录", "expected_result": "按钮显示loading状态，防止重复点击"}
-            ],
-            "test_data": "无",
-            "tags": ["登录", "UI测试", "交互", "P2"]
-        },
-        {
-            "case_id": "TC-LOGIN-011",
-            "requirement_id": "REQ-001",
-            "title": "【性能-并发】多用户同时登录系统稳定性",
-            "priority": "P2",
-            "case_type": "concurrent",
-            "precondition": "准备100个测试账号，性能测试工具就绪",
-            "steps": [
-                {"step_number": 1, "action": "使用JMeter模拟100个用户同时登录", "expected_result": "所有请求正常处理"},
-                {"step_number": 2, "action": "观察响应时间", "expected_result": "95%的请求响应时间小于2秒"},
-                {"step_number": 3, "action": "观察错误率", "expected_result": "错误率低于1%"}
-            ],
-            "test_data": "100并发，持续1分钟",
-            "tags": ["登录", "性能测试", "并发", "P2"]
-        },
-        {
-            "case_id": "TC-LOGIN-012",
-            "requirement_id": "REQ-001",
-            "title": "【数据-一致性】登录后用户信息显示正确",
-            "priority": "P1",
-            "case_type": "data",
-            "precondition": "数据库中用户昵称为'张三'，头像已设置",
-            "steps": [
-                {"step_number": 1, "action": "使用该账号登录", "expected_result": "登录成功"},
-                {"step_number": 2, "action": "查看页面右上角用户信息", "expected_result": "显示昵称'张三'，头像正确显示"},
-                {"step_number": 3, "action": "进入个人中心", "expected_result": "所有用户信息与数据库一致"}
-            ],
-            "test_data": "用户ID：10001，昵称：张三",
-            "tags": ["登录", "数据测试", "一致性", "P1"]
+            "test_data": "具体的测试数据",
+            "tags": ["标签1", "标签2"]
         }
     ],
-    "coverage_summary": "共生成X个测试用例，覆盖X个功能点。包含：功能测试X个、异常测试X个、边界测试X个、安全测试X个（SQL注入、XSS、认证授权）、兼容性测试X个（浏览器、移动端）、接口测试X个、UI测试X个、性能测试X个、数据测试X个。测试覆盖率：功能覆盖100%，安全覆盖90%，兼容性覆盖85%。"
+    "coverage_summary": "覆盖情况统计描述"
 }
 
 ## ⚠️ 重要要求：
 
-1. **数量要求**：每个功能点至少生成15个测试用例，覆盖所有测试类型
-2. case_id 格式：TC-功能模块-序号，如 TC-LOGIN-001、TC-ORDER-001
-3. title 必须以【测试类型】开头，如【功能-正向】【安全-SQL注入】【兼容-移动端】【接口-契约】【UI-交互】【性能-并发】
+1. **数量要求**：每个功能点至少生成20个测试用例，必须覆盖上述所有测试类型
+2. case_id 格式：TC-功能模块-序号，如 TC-LOGIN-001、TC-ORDER-001、TC-PAY-001
+3. title 必须以【测试类型-子类型】开头，如【功能-正向】【安全-SQL注入】【兼容-移动端】【接口-契约】【UI-交互】【性能-并发】【边界-最大值】【异常-网络超时】
 4. steps 中的 action 必须具体到"输入什么内容"、"点击什么按钮"，使用真实的测试数据
 5. expected_result 必须具体到"显示什么文字"、"跳转到什么页面"、"返回什么状态码"
-6. test_data 必须提供具体的测试数据值，如真实手机号格式、真实姓名等
-7. **测试类型(case_type)可选值**：
+6. test_data 必须提供具体的测试数据值
+7. precondition 必须包含具体的前置数据和状态
+8. **测试类型(case_type)可选值**：
    - 基础类型：functional, boundary, exception, smoke, regression
    - 安全类型：security, sql_injection, xss, csrf, auth, permission, sensitive_data
    - 兼容类型：compatibility, browser_compat, mobile_compat, resolution_compat
